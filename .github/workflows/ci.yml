@@ -1,0 +1,80 @@
+name: Chipyard Megaboom Benchmark
+
+on:
+  workflow_dispatch:
+  push:
+  pull_request:
+
+jobs:
+  install-chipyard:
+    name: Install Chipyard
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/antmicro/megaboom-cpu-benchmarking:latest
+    defaults:
+      run:
+        shell: bash
+    env:
+      DEBIAN_FRONTEND: "noninteractive"
+    steps:
+      - name: install chipyard
+        id: install_chipyard
+        run: |
+          git clone https://github.com/ucb-bar/chipyard.git
+          pushd chipyard
+              git checkout 1.11.0
+              ./build-setup.sh riscv-tools -s 5 -s 6 -s 7 -s 8 -s 9
+          popd
+          tar -czf chipyard.tar.gz chipyard/
+      - name: upload artifact
+        id: upload_artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: chipyard.tar.gz
+          path: ./
+
+  binary-tests:
+    name: Binary test
+    needs: install-chipyard
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/antmicro/megaboom-cpu-benchmarking:latest
+    defaults:
+      run:
+        shell: bash
+    strategy:
+      fail-fast: false
+      matrix:
+        CONFIG: ["RocketConfig", "MegaBoomConfig"]
+        BINARY: ["../../tests/hello.riscv", "../../software/coremark/riscv-coremark/coremark.bare.riscv"]
+    env:
+      DEBIAN_FRONTEND: "noninteractive"
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: chipyard.tar.gz
+          path: ./
+      - name: Unpack artifact
+        run: |
+          tar -xf chipyard.tar.gz chipyard/
+      - name: Coremark
+        run: |
+          pushd chipyard
+            source env.sh
+            git submodule update --init --recursive software/coremark
+            pushd software/coremark
+              ./build.sh
+            popd
+          popd
+      - name: Binary test
+        id: binary_test
+        run: |
+          pushd chipyard
+            source env.sh
+            pushd sims/verilator
+              make run-binary CONFIG=${CONFIG} BINARY=${BINARY}
+            popd
+          popd
+
+

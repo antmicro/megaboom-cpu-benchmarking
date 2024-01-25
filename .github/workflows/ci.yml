@@ -11,12 +11,25 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/antmicro/megaboom-cpu-benchmarking:latest
+      volumes:
+        - /usr/share/dotnet:/usr/share/dotnet
+        - /usr/local/lib/android:/usr/local/lib/android
+        - /opt/ghc:/opt/ghc
     defaults:
       run:
         shell: bash
     env:
       DEBIAN_FRONTEND: "noninteractive"
     steps:
+      - name: Increase build space
+        run: |
+          echo "Before cleanup"
+          df -H
+          rm -rf /usr/share/dotnet/*
+          rm -rf /usr/local/lib/android/*
+          rm -rf /opt/ghc/*
+          echo "After cleanup"
+          df -H
       - name: install chipyard
         id: install_chipyard
         run: |
@@ -39,6 +52,10 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/antmicro/megaboom-cpu-benchmarking:latest
+      volumes:
+        - /usr/share/dotnet:/usr/share/dotnet
+        - /usr/local/lib/android:/usr/local/lib/android
+        - /opt/ghc:/opt/ghc
     defaults:
       run:
         shell: bash
@@ -50,6 +67,15 @@ jobs:
     env:
       DEBIAN_FRONTEND: "noninteractive"
     steps:
+      - name: Increase build space
+        run: |
+          echo "Before cleanup"
+          df -H
+          rm -rf /usr/share/dotnet/*
+          rm -rf /usr/local/lib/android/*
+          rm -rf /opt/ghc/*
+          echo "After cleanup"
+          df -H
       - name: Download artifact
         uses: actions/download-artifact@v3
         with:

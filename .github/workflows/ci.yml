@@ -41,7 +41,7 @@ jobs:
           git clone https://github.com/ucb-bar/chipyard.git
           pushd chipyard
               git checkout 1.11.0
-              ./build-setup.sh riscv-tools -s 4 -s 5 -s 6 -s 7 -s 8 -s 9 -s 10
+              ./build-setup.sh riscv-tools -s 4 -s 6 -s 7 -s 8 -s 9
           popd
       - name: Binary test
         id: binary_test

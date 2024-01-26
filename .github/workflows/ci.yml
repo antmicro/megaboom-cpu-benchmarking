@@ -50,6 +50,9 @@ jobs:
             . /root/conda/etc/profile.d/conda.sh
             conda activate
             source env.sh
+            pushd tests
+              make -j`nproc`
+            popd
             git submodule update --init --recursive software/coremark
             pushd software/coremark
               ./build.sh

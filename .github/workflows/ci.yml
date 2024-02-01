@@ -55,11 +55,18 @@ jobs:
             popd
             git submodule update --init --recursive software/coremark
             pushd software/coremark
-              ./build.sh
+              rm -rf riscv-coremark
+              git clone https://github.com/antmicro/riscv-coremark -b mkurc/54119-baremetal-fixes
+              pushd riscv-coremark && git submodule update --init --recursive && popd
+              TICKS_PER_SEC=10000 ITERATIONS=1 ./build.sh
             popd
             pushd sims/verilator
-              make run-binary CONFIG=${{ matrix.CONFIG }} BINARY=${{ matrix.BINARY }}
+              make run-binary CONFIG=${{ matrix.CONFIG }} BINARY=${{ matrix.BINARY }} timeout_cycles=10000000
             popd
           popd
-
+      - name: 'Upload Artifacts'
+        uses: actions/upload-artifact@v3
+        with:
+          name: verilator_tests
+          path: chipyard/sims/verilator/output/
 
